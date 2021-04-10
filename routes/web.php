@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ClientesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,4 +30,20 @@ Route::get('/avisos', function () {
 });
 Route::get('/ex1903', function () {
     return view('treinoparapi', ['onoff' => false]);
+});
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+Route::group(['prefix' => 'clientes'], function () {
+
+
+    Route::get('/listar', [App\Http\Controllers\ClientesController::class, 'listar'])->middleware('auth');
+    Route::get('/listandoExercicio', [App\Http\Controllers\ClientesController::class, 'listandoExercicio'])->middleware('auth');
 });
