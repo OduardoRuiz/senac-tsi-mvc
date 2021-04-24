@@ -47,12 +47,13 @@ class UserController extends Controller
             $request,
             [
                 'name' => 'required', 'email' => 'required|email|unique:user,email',
-                'passoword' => 'required|same:confirm-password'
+                'passoword' => 'required|same:confirm-password', 'roles' => 'required'
             ]
         );
 
         $input = $request->all();
-        $input['password'] = Hash::make($input['password'])
+        $input['password'] = Hash::make($input['password']);
+
         $user = User::create($input);
         $user->assignRole($request->input('roles'));
         return redirect()->route('users.index')->with('sucess', 'Usuario Criado com sucesso');
@@ -78,11 +79,11 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        user = User::find($id);
+        $user = User::find($id);
         $roles = Role::pluck('name', 'name')->all();
         $userRole = $user->roles->pluck('name', 'name')->all();
 
-        return view('users.edit', compact('user','roles','userRoles'));
+        return view('users.edit', compact('user', 'roles', 'userRoles'));
     }
 
     /**
@@ -94,7 +95,34 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        $this->validate(
+            $request,
+            [
+                'name' => 'required', 'email' => 'required|email|unique:user,email',
+                'passoword' => 'required|same:confirm-password', 'roles' => 'required'
+            ]
+        );
+
+        $input = $request->all();
+
+        if (!empty($input['password'])) {
+
+            $input['password'] = Hash::make($input['password']);
+        } else {
+
+            $input = Arr::except($input, ['password']);
+        }
+
+        $user = User::find($id);
+
+        $user->update($input);
+
+        DB::table('model_has_roles')->where('model_id', $id)->delete();
+
+        $user->assignRole($request->input('roles'));
+
+        return redirect()->route('users.index')->with('success', 'Usuário atualizado com sucesso');
     }
 
     /**
@@ -106,6 +134,6 @@ class UserController extends Controller
     public function destroy($id)
     {
         User::find($id)->delete();
-        return redirect()->route('users.index')->with('sucess'. 'Usuário removido com sucesso');
+        return redirect()->route('users.index')->with('sucess' . 'Usuário removido com sucesso');
     }
 }
