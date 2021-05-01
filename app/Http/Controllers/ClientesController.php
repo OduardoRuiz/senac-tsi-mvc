@@ -1,23 +1,58 @@
 <?php
 
-namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Route;
 
-use Illuminate\Http\Request;
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
 
-use App\Models\Clientes;
+Route::get('/', function () {
+    return view('welcome');
+});
 
-class ClientesController extends Controller
-{
+Route::get('/avisos', function () {
+    return view('avisos', array(
+        'nome' => 'Bono',
+        'mostrar' => true,
+        'avisos' => array(
+            [
+                'id' => 1,
+                'texto' => 'Feriados agora'
+            ],
+            [
+                'id' => 2,
+                'texto' => 'Feriado semana que vem'
+            ]
+        )
+    ));
+});
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+/*
+Route::group(['prefix' => 'clientes'], function (){
+
+	//Controlando o acesso com o middleware auth
+	//Route::get('/listar',[App\Http\Controllers\ClientesController::class, 'listar'])->middleware('auth');
 
 
-    public function listar()
-    {
-        $clientes = Clientes::all();
+});
+*/
+Route::group(['middleware' => ['auth']], function () {
+    Route::resource('/clientes', App\Http\Controllers\ClientesController::class);
+});
 
-        return view('clientes.listar', ['clientes' => $clientes]);
-    }
-    public function listandoExercicio()
-    {
-        return view('clientes.listarParaExercicio');
-    }
-}
+Route::group(['middleware' => ['auth']], function () {
+
+    Route::resource('/users', App\Http\Controllers\UserController::class);
+    Route::resource('/roles', App\Http\Controllers\RoleController::class);
+});
