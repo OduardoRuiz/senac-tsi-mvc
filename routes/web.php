@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ClientesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,51 +13,44 @@ use App\Http\Controllers\ClientesController;
 |
 */
 
-
-
 Route::get('/', function () {
     return view('welcome');
 });
+
 Route::get('/avisos', function () {
-    return view(
-        'avisos',
-        ['nome' => 'eduardo', 'mostrar' => true, 'avisos' => [
-            ['id' => 1, 'texto' => 'Feriados agora'],
-            ['id' => 2, 'texto' => 'Feriado Semana que vem']
-        ]]
-    );
-});
-Route::get('/ex1903', function () {
-    return view('treinoparapi', ['onoff' => false]);
+    return view('avisos', array(
+        'nome' => 'eduardo',
+        'mostrar' => true,
+        'avisos' => array(
+            [
+                'id' => 1,
+                'texto' => 'Feriados agora'
+            ],
+            [
+                'id' => 2,
+                'texto' => 'Feriado semana que vem'
+            ]
+        )
+    ));
 });
 
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Auth::routes();
+/*
+Route::group(['prefix' => 'clientes'], function (){
+
+	//Controlando o acesso com o middleware auth
+	//Route::get('/listar',[App\Http\Controllers\ClientesController::class, 'listar'])->middleware('auth');
 
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-
-Route::group(['prefix' => 'clientes'], function () {
-
-
-    Route::get('/listar', [App\Http\Controllers\ClientesController::class, 'listar'])->middleware('auth');
-    Route::get('/listandoExercicio', [App\Http\Controllers\ClientesController::class, 'listandoExercicio'])->middleware('auth');
 });
+*/
 
 Route::group(['middleware' => ['auth']], function () {
 
-
-    Route::group(['middleware' => ['auth']], function () {
-        Route::resource('/clientes', App\Http\Controllers\ClientesController::class);
-    });
-
-    Route::group(['middleware' => ['auth']], function () {
-
-        Route::resource('/users', App\Http\Controllers\UserController::class);
-        Route::resource('/roles', App\Http\Controllers\RoleController::class);
-    });
+    Route::resource('/clientes', App\Http\Controllers\ClientesController::class);
+    Route::resource('/users', App\Http\Controllers\UserController::class);
+    Route::resource('/roles', App\Http\Controllers\RoleController::class);
 });

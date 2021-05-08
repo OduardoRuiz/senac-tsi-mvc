@@ -1,58 +1,142 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+namespace App\Http\Controllers;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+use Illuminate\Http\Request;
+use App\Models\Clientes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+class ClientesController extends Controller
+{
+    use HasFactory;
+    use HasRoles;
 
-Route::get('/avisos', function () {
-    return view('avisos', array(
-        'nome' => 'Bono',
-        'mostrar' => true,
-        'avisos' => array(
+
+    //Essa é uma forma de controlar o acesso
+    public function __construct()
+    {
+        $this->middleware('permission:cliente-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:cliente-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:cliente-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:cliente-delete', ['only' => ['destroy']]);
+    }
+
+    public function listar()
+    {
+        $clientes = Clientes::all();
+
+        return view('clientes.listar', ['clientes' => $clientes]);
+    }
+
+    public function index(Request $request)
+    {
+        $qtd_por_pagina = 5;
+
+        $data = Clientes::orderBy('id', 'DESC')->paginate($qtd_por_pagina);
+
+        return view(
+            'clientes.index',
+            compact('data')
+        )->with('i', ($request->input('page', 1) - 1) * $qtd_por_pagina);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('clientes.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $this->validate(
+            $request,
             [
-                'id' => 1,
-                'texto' => 'Feriados agora'
-            ],
-            [
-                'id' => 2,
-                'texto' => 'Feriado semana que vem'
+                'nome' => 'required',
+                'email' => 'required|email|unique:users,email'
             ]
-        )
-    ));
-});
+        );
 
-Auth::routes();
+        $input = $request->all();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+        Clientes::create($input);
 
-/*
-Route::group(['prefix' => 'clientes'], function (){
+        return redirect()->route('clientes.index')->with('success', 'Cliente criado com sucesso');
+    }
 
-	//Controlando o acesso com o middleware auth
-	//Route::get('/listar',[App\Http\Controllers\ClientesController::class, 'listar'])->middleware('auth');
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $cliente = Clientes::find($id);
 
+        return view('clientes.show', compact('cliente'));
+    }
 
-});
-*/
-Route::group(['middleware' => ['auth']], function () {
-    Route::resource('/clientes', App\Http\Controllers\ClientesController::class);
-});
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $cliente = Clientes::find($id);
 
-Route::group(['middleware' => ['auth']], function () {
+        return view('clientes.edit', compact('cliente'));
+    }
 
-    Route::resource('/users', App\Http\Controllers\UserController::class);
-    Route::resource('/roles', App\Http\Controllers\RoleController::class);
-});
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $this->validate(
+            $request,
+            [
+                'nome' => 'required',
+                'email' => 'required|email|unique:users,email'
+            ]
+        );
+
+        $input = $request->all();
+
+        $cliente = Clientes::find($id);
+
+        $cliente->update($input);
+
+        return redirect()->route('clientes.index')->with('success', 'Cliente atualizado com sucesso');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        Clientes::find($id)->delete();
+
+        return redirect()->route('clientes.index')->with('success', 'Cliente removido com sucesso');
+    }
+}
