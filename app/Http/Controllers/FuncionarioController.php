@@ -17,7 +17,7 @@ class FuncionarioController extends Controller
     {
         return Funcionario::all();
     }
-
+//add
     /**
      * Show the form for creating a new resource.
      *
